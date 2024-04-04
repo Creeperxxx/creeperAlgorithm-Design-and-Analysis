@@ -1,17 +1,35 @@
 #include <iostream>;
 using namespace std;
+#define QUEUESIZE 10000
+
+typedef struct Queue
+{
+	int front;
+	int rear;
+	int data[QUEUESIZE];
+}Queue;
 
 static int hannicount = -1;
 int Translate(char str);//数字字符转化为数字
 int Multi(char* a, char* b);//三位数乘三位数
 void Hanni(int n, char one, char two, char three);//汉诺塔 递归
 void move(char a, char b);//汉诺塔移动
-int binary_search(int* array, int len, int elem);
+int binary_search(int* array, int len, int elem);//二分查找
+void InitQueue(Queue* Q);
+bool IsEmptyQueue(Queue* Q);
+void EnQueue(Queue* Q, int a);
+void DeQueue(Queue* Q, int* b);
+void MaxArr(int* arr, int& front, int& rear, int& sum);//穷举法求最大子数组和
+int MaxSubArray(int* x, int low, int high);//分治法求最大子数组和
+int CrossingSubArray(int* x, int low, int high);//过中心的最大子数组和
+int Max(int a, int b, int c);//三个数中最大值
+int CountInver(int* x, int left, int right);//求最大逆序对
+int MergeCount(int* x, int left, int right);//跨中心逆序对
 
 int main()
 {
-	int a[8] = { 1,2,3,4,5,6,7,8 };
-	cout << binary_search(a, 8, 6) << endl;
+	int a[8] = { 8,7,6,5,4,3,2,1 };
+	cout << CountInver(a, 0, 7) << endl;
 	system("pause");
 	return 0;
 }
@@ -130,4 +148,180 @@ int binary_search(int* array, int len, int elem)
 		}
 	}
 	return -1;
+}
+
+void InitQueue(Queue* Q)
+{
+	Q = new Queue;
+	if (!Q)
+	{
+		return;
+	}
+	Q->front = 0;
+	Q->rear = 0;
+}
+
+bool IsEmptyQueue(Queue* Q)
+{
+	if (Q->front == Q->rear)
+	{
+		return true;                                                                          
+	}
+	else
+	{
+		return false;
+	}
+}
+
+void EnQueue(Queue* Q, int a)
+{
+	if (Q->rear == QUEUESIZE - 1)
+	{
+		return;
+	}
+	Q->data[Q->rear] = a;
+	Q->rear++;
+}
+
+void DeQueue(Queue* Q, int* b)
+{
+	if (IsEmptyQueue(Q))
+	{
+		return;
+	}
+	*b= Q->data[Q->front];
+	Q->front++;
+}
+
+void MaxArr(int* arr, int& front, int& rear, int& sum)
+{
+	Queue* Q=NULL;
+	InitQueue(Q);
+	int lens = 10;
+	int tempsum = 0;
+	sum = arr[0];
+	front = 0;
+	rear = 0;
+	for (int x = 0; x <= lens - 1; x++)
+	{
+		tempsum = arr[x];
+		for (int y = x; y <= lens - 1; y++)
+		{
+			if (x != y)
+			{
+				tempsum += arr[y];
+			}
+			if (tempsum > sum)
+			{
+				front = x;
+				rear = y;
+				sum = tempsum;
+			}
+		}
+	}
+}
+
+int MaxSubArray(int* x, int low, int high)
+{
+	if (low == high)
+	{
+		return x[low];
+	}
+	else
+	{
+		int mid = (low + high) / 2;
+		int s1 = MaxSubArray(x, low, mid);
+		int s2 = MaxSubArray(x, mid + 1, high);
+		int s3 = CrossingSubArray(x, low, high);
+		return Max(s1, s2, s3);
+	}
+}
+
+int CrossingSubArray(int* x, int low, int high)
+{
+	int mid = (low + high) / 2;
+	int sumleft = -1000;
+	int sum = 0;
+	int sumright = -1000;
+	for (int i = mid; i >= low; i--)
+	{
+		sum += x[i];
+		if (sum > sumleft)
+		{
+			sumleft = sum;
+		}
+	}
+	sum = 0;
+	for (int i = mid + 1; i <= high; i++)
+	{
+		sum += x[i];
+		if (sum > sumright)
+		{
+			sumright = sum;
+		}
+	}
+	sum = sumright + sumleft;
+	return sum;
+}
+
+int Max(int a, int b, int c)
+{
+	int max = a > b ? a : b;
+	max = max > c ? max : c;
+	return max;
+}
+
+int CountInver(int* x, int left, int right)
+{
+	if (left >=right )
+	{
+		return 0;
+	}
+	int mid = (left + right) / 2;
+	int s1 = CountInver(x, 0, mid);
+	int s2 = CountInver(x, mid + 1, right);
+	int s3 = MergeCount(x, left, right);
+	return s1 + s2 + s3;
+}
+
+int MergeCount(int* x, int left, int right)
+{
+	int count = 0;
+	int* temp = new int[right - left + 1];
+	int k = 0;
+	int mid = (left + right) / 2;
+	int a = left;
+	int b = mid + 1;
+	while (a <= mid&&b <= right)
+	{
+		if (x[a] > x[b])
+		{
+			temp[k++] = x[b++];
+			count += mid - a + 1;
+		}
+		else
+		{
+			temp[k++] = x[a++];
+		}
+	}
+	if (a > mid)
+	{
+		for (int i = b; i <= right; i++)
+		{
+			temp[k++] = x[i];
+		}
+	}
+	if (b > right)
+	{
+		for (int i = a; i <= mid; i++)
+		{
+			temp[k++] = x[i];
+		}
+	}
+	for (int i = left; i <= right; i++)
+	{
+		x[i] = temp[i - left];
+	}
+	delete [] temp;
+	return count;
 }
