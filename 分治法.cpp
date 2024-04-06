@@ -1,4 +1,6 @@
-#include <iostream>;
+#include  <iostream>
+#include <stdlib.h>
+#include <time.h>
 using namespace std;
 #define QUEUESIZE 10000
 
@@ -25,11 +27,22 @@ int CrossingSubArray(int* x, int low, int high);//过中心的最大子数组和
 int Max(int a, int b, int c);//三个数中最大值
 int CountInver(int* x, int left, int right);//求最大逆序对
 int MergeCount(int* x, int left, int right);//跨中心逆序对
+void MergeSort(int* x, int low, int high);//归并排序
+void Merge(int* x, int low, int high);//归并
+int Randomized_Partition(int* x, int low, int high);//数组划分_随机主元
+void QuickSort(int* x, int low, int high);//快速排序
+void Exchange(int* x, int a, int b);//交换两数
+int partition(int* x, int low, int high);//数组划分
 
 int main()
 {
 	int a[8] = { 8,7,6,5,4,3,2,1 };
-	cout << CountInver(a, 0, 7) << endl;
+	QuickSort(a, 0, 7);
+	for (int i = 0; i <= 7; i++)
+	{
+		cout << a[i] << " ";
+	}
+	cout << endl;
 	system("pause");
 	return 0;
 }
@@ -324,4 +337,91 @@ int MergeCount(int* x, int left, int right)
 	}
 	delete [] temp;
 	return count;
+}
+
+void MergeSort(int* x, int low, int high)
+{
+	if (low < high)
+	{
+		int mid = (low + high) / 2;
+		MergeSort(x, low, mid);
+		MergeSort(x, mid+1,high);
+		Merge(x, low, high);
+		return;
+	}
+}
+
+void Merge(int* x, int low, int high)
+{
+	int mid = (low + high) / 2;
+	int* temp = new int[high - low + 1];
+	int k = 0;
+	int left = low;
+	int right = mid + 1;
+	while (left <= mid && right <= high)
+	{
+		if (x[left] >= x[right])
+		{
+			temp[k++] = x[right++];
+		}
+		else
+		{
+			temp[k++] = x[left++];
+		}
+	}
+	for (int i = left; i <= mid; i++)
+	{
+		temp[k++] = x[i];
+	}
+	for (int i = right; i <= high; i++)
+	{
+		temp[k++] = x[i];
+	}
+	k = 0;
+	for (int i = low; i <= high; i++)
+	{
+		x[i] = temp[k++];
+	}
+	delete[]temp;
+}
+
+int Randomized_Partition(int* x, int low, int high)
+{
+	srand((unsigned int)time(NULL));
+	int p = rand() % (high - low + 1) + low;
+	Exchange(x, p, high);
+	return partition(x, low, high);
+}
+
+void Exchange(int* x, int a, int b)
+{
+	int temp = x[a];
+	x[a] = x[b];
+	x[b] = temp;
+}
+
+int partition(int* x, int low, int high)
+{
+	int i = low - 1;
+	int j = low;
+	for (j; j <= high - 1; j++)
+	{
+		if (x[j] <= x[high])
+		{
+			Exchange(x, ++i, j);
+		}
+	}
+	Exchange(x, ++i, high);
+	return i;
+}
+
+void QuickSort(int* x, int low, int high)
+{
+	if (low < high)
+	{
+		int p = Randomized_Partition(x, low, high);
+		QuickSort(x, low, p-1);
+		QuickSort(x, p+1 , high);
+	}
+	return;
 }
