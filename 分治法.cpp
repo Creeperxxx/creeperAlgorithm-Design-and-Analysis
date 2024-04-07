@@ -33,16 +33,22 @@ int Randomized_Partition(int* x, int low, int high);//数组划分_随机主元
 void QuickSort(int* x, int low, int high);//快速排序
 void Exchange(int* x, int a, int b);//交换两数
 int partition(int* x, int low, int high);//数组划分
+int QuickMin(int* x, int k, int low, int high);//次序排序
+int Max_Continuous_Subarray_DP(int* x, int n, int& max, int& low, int& high);//动态规划最大子数组和
 
 int main()
 {
-	int a[8] = { 8,7,6,5,4,3,2,1 };
-	QuickSort(a, 0, 7);
-	for (int i = 0; i <= 7; i++)
+	int a[20] = { 0 };
+	for (int i = 0; i < 20; i++)
+	{
+		a[i] = 20 - i;
+	}
+	int m = QuickMin(a, 13, 0, 19);
+	cout << m << endl;
+	for (int i = 0; i < 20; i++)
 	{
 		cout << a[i] << " ";
 	}
-	cout << endl;
 	system("pause");
 	return 0;
 }
@@ -420,8 +426,68 @@ void QuickSort(int* x, int low, int high)
 	if (low < high)
 	{
 		int p = Randomized_Partition(x, low, high);
-		QuickSort(x, low, p-1);
-		QuickSort(x, p+1 , high);
+		QuickSort(x, low, p - 1);
+		QuickSort(x, p + 1, high);
 	}
 	return;
+}
+
+int QuickMin(int* x, int k, int low, int high)
+{
+	if (low >= high)
+	{
+		return x[low];
+	}
+	else
+	{
+		int temp = Randomized_Partition(x, low, high);
+		if (k == temp - low + 1)
+		{
+			return x[temp];
+		}
+		else if (k < temp - low + 1)
+		{
+			return QuickMin(x, k, low, temp - 1);
+		}
+		else
+		{
+			return QuickMin(x, k - (temp - low + 1), temp + 1, high);
+		}
+	}
+}
+
+int Max_Continuous_Subarray_DP(int* x, int n, int& max, int& low, int& high)
+{
+	int* d = new int[n];
+	int* rec = new int[n];
+	d[n - 1] = x[n - 1];
+	rec[n - 1] = n - 1;
+	for (int i = n - 2; i >= 0; i++)
+	{
+		if (d[i + 1] > 0)
+		{
+			d[i] = d[i + 1] + x[i];
+			rec[i] = rec[i + 1];
+		}
+		else
+		{
+			d[i] = x[i];
+			rec[i] = i;
+		}
+	}
+	int templow = 0;
+	int temphigh = rec[0];
+	int tempmax = d[0];
+	for (int i = 1; i <= n - 1; i++)
+	{
+		if (d[i] > max)
+		{
+			max = d[i];
+			low = i;
+			high = rec[i];
+		}
+	}
+	max = tempmax;
+	low = templow;
+	high = temphigh;
 }
