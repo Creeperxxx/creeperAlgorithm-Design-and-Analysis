@@ -38,10 +38,15 @@ void Max_Continuous_Subarray_DP(int* x, int n, int& max, int& low, int& high);//
 void Longest_Common_Subsequence(int* x, int* y, int** c, char** rec);//最大子数组
 void Print_LCS(int* x, char** rec, int m,int n);//求最大公共子数组
 void GetLCSxy(int** c, int& x, int& y);
+void Longest_Common_Substring(int* x, int* y, int& max, int& end);//最大公共子串
+void Minimum_Edit_Distance(char* s, char* t, int** c, char** rec);//编辑距离问题
+int mymin(int a, int b, int c);//找最小
+void Print_MED(char** rec, char* s, char* t, int i, int j);//索引
+
 int main()
 {
-	int a[3] = {2,3,1 };
-	Merge(a, 0, 2);
+	int x[2] = { 0 };
+	int y[5] = { 0 };
 	system("pause");
 	return 0;
 }
@@ -357,6 +362,7 @@ void Merge(int* x, int low, int high)
 		return;
 	}
 	int mid = (low + high) / 2;
+	
 	int* temp = new int[high - low + 1];
 	int k = 0;
 	int left = low;
@@ -372,13 +378,13 @@ void Merge(int* x, int low, int high)
 			temp[k++] = x[left++];
 		}
 	}
-	for (int i = left; i <= mid; i++)
+	while (left <= mid)
 	{
-		temp[k++] = x[i];
+		temp[k++] = x[left++];
 	}
-	for (int i = right; i <= high; i++)
+	while (right <= high)
 	{
-		temp[k++] = x[i];
+		temp[k++] = x[right];
 	}
 	k = 0;
 	for (int i = low; i <= high; i++)
@@ -600,5 +606,143 @@ void GetLCSxy(int** c, int& x, int& y)
 				y = j - 1;
 			}
 		}
+	}
+}
+
+void Longest_Common_Substring(int* x, int* y, int& max, int& end)
+{
+	int len_x = 0;
+	int len_y = 0;
+	for (int i = 0; x[i]; i++)
+	{
+		len_x++;
+	}
+	for (int i = 0; y[i]; i++)
+	{
+		len_y++;
+	}
+	int** c = new int* [len_x+1];
+	for (int i = 0; i < len_x + 1; i++)
+	{
+		c[i] = new int[len_y + 1];
+	}
+	for (int i = 0; i < len_y + 1; i++)
+	{
+		c[0][i] = 0;
+	}
+	for (int i = 0; i < len_x + 1; i++)
+	{
+		c[i][0] = 0;
+	}
+	max = 0;
+	end = 0;
+	for (int i = 0; i < len_x; i++)
+	{
+		for (int j = 0; j < len_y; j++)
+		{
+			if (x[i] == y[j])
+			{
+				c[i + 1][j + 1] = c[i][j] + 1;
+				if (c[i + 1][j + 1] > max)
+				{
+					max = c[i + 1][j + 1];
+					end = i;
+				}
+			}
+			else
+			{
+				c[i + 1][j + 1] = 0;
+			}
+		}
+	}
+	
+}
+
+void Minimum_Edit_Distance(char* s, char* t, int** c, char** rec)
+{
+	int len_s = strlen(s);
+	int len_t = strlen(t);
+	c = new int* [len_s + 1];
+	for (int i = 0; i < len_t + 1; i++)
+	{
+		c[i] = new int[len_t + 1];
+	}
+	for (int i = 0; i < len_t + 1; i++)
+	{
+		c[0][i] = i;
+	}
+	for (int i = 0; i < len_s; i++)
+	{
+		c[i][0] = i;
+	}
+	int Replace = 0;
+	int Delete = 0;
+	int Insert = 0;
+	for (int i = 0; i < len_s + 1; i++)
+	{
+		for (int j = 0; j < len_t+1; j++)
+		{
+			int flag = 0;
+			if (s[i] == t[j])
+			{
+				flag = 1;
+			}
+			Replace = c[i][j] + flag;
+			Delete = c[i][j + 1] + 1;
+			Insert = c[i + 1][j] + 1;
+			int min = mymin(Replace, Delete, Insert);
+			if (Replace == min)
+			{
+				c[i + 1][j + 1] = Replace;
+				rec[i + 1][i + 1] = 'LU';
+			}
+			else if (Insert == min)
+			{
+				c[i + 1][j + 1] = Insert;
+				rec[i + 1][j + 1] = 'L';
+			}
+			else
+			{
+				c[i + 1][j + 1] = Delete;
+				rec[i + 1][j + 1] = 'U';
+			}
+		}
+	}
+}
+
+int mymin(int a, int b, int c)
+{
+	int min = a > b ? b : a;
+	min = c > min ? min : c;
+	return min;
+}
+
+void Print_MED(char** rec, char* s, char* t, int i, int j)
+{
+	if (i == 0 || j == 0)
+	{
+		return;
+	}
+	if (rec[i][j] == 'LU')
+	{
+		Print_MED(rec, s, t, i - 1, j - 1);
+		if (s[i] == t[j])
+		{
+			cout << "无需操作 ";
+		}
+		else
+		{
+			cout << "用t替换s ";
+		}
+	}
+	else if (rec[i][j] == 'U')
+	{
+		Print_MED(rec, s, t, i - 1, j);
+		cout << "删除s ";
+	}
+	else
+	{
+		Print_MED(rec, s, t, i, j + 1);
+		cout << "插入t ";
 	}
 }
