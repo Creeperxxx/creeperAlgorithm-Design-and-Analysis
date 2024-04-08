@@ -34,21 +34,14 @@ void QuickSort(int* x, int low, int high);//快速排序
 void Exchange(int* x, int a, int b);//交换两数
 int partition(int* x, int low, int high);//数组划分
 int QuickMin(int* x, int k, int low, int high);//次序排序
-int Max_Continuous_Subarray_DP(int* x, int n, int& max, int& low, int& high);//动态规划最大子数组和
-
+void Max_Continuous_Subarray_DP(int* x, int n, int& max, int& low, int& high);//动态规划最大子数组和
+void Longest_Common_Subsequence(int* x, int* y, int** c, char** rec);//最大子数组
+void Print_LCS(int* x, char** rec, int m,int n);//求最大公共子数组
+void GetLCSxy(int** c, int& x, int& y);
 int main()
 {
-	int a[20] = { 0 };
-	for (int i = 0; i < 20; i++)
-	{
-		a[i] = 20 - i;
-	}
-	int m = QuickMin(a, 13, 0, 19);
-	cout << m << endl;
-	for (int i = 0; i < 20; i++)
-	{
-		cout << a[i] << " ";
-	}
+	int a[3] = {2,3,1 };
+	Merge(a, 0, 2);
 	system("pause");
 	return 0;
 }
@@ -359,6 +352,10 @@ void MergeSort(int* x, int low, int high)
 
 void Merge(int* x, int low, int high)
 {
+	if (low >= high)
+	{
+		return;
+	}
 	int mid = (low + high) / 2;
 	int* temp = new int[high - low + 1];
 	int k = 0;
@@ -456,13 +453,13 @@ int QuickMin(int* x, int k, int low, int high)
 	}
 }
 
-int Max_Continuous_Subarray_DP(int* x, int n, int& max, int& low, int& high)
+void Max_Continuous_Subarray_DP(int* x, int n, int& max, int& low, int& high)
 {
 	int* d = new int[n];
 	int* rec = new int[n];
 	d[n - 1] = x[n - 1];
 	rec[n - 1] = n - 1;
-	for (int i = n - 2; i >= 0; i++)
+	for (int i = n - 2; i >= 0; i--)
 	{
 		if (d[i + 1] > 0)
 		{
@@ -490,4 +487,118 @@ int Max_Continuous_Subarray_DP(int* x, int n, int& max, int& low, int& high)
 	max = tempmax;
 	low = templow;
 	high = temphigh;
+}
+
+void Longest_Common_Subsequence(int* x, int* y, int** c, char** rec)
+{
+	int len_x = 0;
+	int len_y = 0;
+	for (int i = 0; x[i]; i++)
+	{
+		len_x++;
+	}
+	for (int i = 0; y[i]; i++)
+	{
+		len_y++;
+	}
+	if (len_x == 0 || len_y == 0)
+	{
+		return;
+	}
+	c = new int* [len_x+1];
+
+	for (int i = 0; i < len_x; i++)
+	{
+		c[i] = new int[len_y+1];
+	}
+
+	rec = new char* [len_x];
+
+	for (int i = 0; i < len_x; i++)
+	{
+		rec[i] = new char[len_y];
+	}
+
+	for (int i = 0; i < len_x; i++)
+	{
+		c[i][0] = 0;
+		c[0][i] = 0;
+	}
+	
+	for (int i = 0; i < len_x; i++)
+	{
+		for (int j = 0; j < len_y; j++)
+		{
+			if (x[i] == y[j])
+			{
+				c[i + 1][j + 1] = c[i][j] + 1;
+				rec[i][j] = 'LU';
+			}
+			else if (c[i][j+1] >= c[i+1][j])
+			{
+				c[i + 1][j + 1] = c[i][j + 1];
+				rec[i][j] = 'U';
+			}
+			else
+			{
+				c[i + 1][j + 1] = c[i + 1][j];
+				rec[i][j] = 'L';
+			}
+		}
+	}
+	return;
+}
+
+void Print_LCS(int* x, char** rec, int m, int n)
+{
+	if (m < 0 || n < 0)
+	{
+		return;
+	}
+	if (rec[m][n]=='LU')
+	{
+		Print_LCS(x, rec, m - 1, n - 1);
+		cout << x[m] << " ";
+	}
+	else if (rec[m][n] == 'U')
+	{
+		Print_LCS(x, rec, m - 1, n);
+	}
+	else
+	{
+		Print_LCS(x, rec, m, n - 1);
+	}
+}
+
+void GetLCSxy(int** c, int& x, int& y)
+{
+	if (!c[0])
+	{
+		return;
+	}
+	int max = c[1][1];
+	x = 0;
+	y = 0;
+	int len_x = 0;
+	int len_y = 0;
+	for (int i = 0; c[i]; i++)
+	{
+		len_x++;
+	}
+	for (int i = 0; c[0][i]; i++)
+	{
+		len_y++;
+	}
+	for (int i = 1; i < len_x; i++)
+	{
+		for (int j = 1; j < len_y; j++)
+		{
+			if (c[i][j] > max)
+			{
+				max = c[i][j];
+				x = i - 1;
+				y = j - 1;
+			}
+		}
+	}
 }
